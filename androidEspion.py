@@ -50,7 +50,7 @@ class ConnectApp(customtkinter.CTk):
         self.glow_label = customtkinter.CTkLabel(
             self.status_bar, 
             textvariable=self.status_var,
-            text_color="#33FF33",
+            text_color="#33FF33",  # Lighter green for the glow
             font=("Tahoma", 20, "normal")
         )
         self.glow_label.place(relx=0.5, rely=0.5, anchor="center", x=1, y=1)
@@ -58,7 +58,7 @@ class ConnectApp(customtkinter.CTk):
         self.status_label = customtkinter.CTkLabel(
             self.status_bar, 
             textvariable=self.status_var,
-            text_color="#00FF00",
+            text_color="#00FF00",  # Bright green
             font=("Tahoma", 20, "normal")
         )
         self.status_label.place(relx=0.5, rely=0.5, anchor="center")
@@ -159,12 +159,12 @@ class ConnectApp(customtkinter.CTk):
         title_label = customtkinter.CTkLabel(button_frame, text="Function Selection", font=("Helvetica", 24))
         title_label.grid(row=0, column=0, columnspan=4, pady=(0, 20))
 
-        functions = ["Function 2", "Function 3", "Function 4",
+        functions = ["Disconnect","Function 2", "Function 3", "Function 4",
                      "Function 5", "Function 6", "Function 7", "Function 8"]
 
         for i, func_name in enumerate(functions):
             button = customtkinter.CTkButton(button_frame, text=func_name, 
-                                             command=lambda x=i: self.custom_function(x+2),
+                                             command=lambda x=i: self.custom_function(x+1),
                                              width=200, height=50)
             button.grid(row=(i//4)+1, column=i%4, padx=10, pady=10)
 
@@ -185,7 +185,6 @@ class ConnectApp(customtkinter.CTk):
             result = subprocess.run(["adb", "disconnect"], capture_output=True, text=True)
             if result.returncode == 0:
                 self.update_status("Disconnected successfully")
-                self.show_connect_page()  # Go back to the connect page after disconnecting
             else:
                 self.update_status(f"Disconnect failed: {result.stderr.strip()}")
         except subprocess.CalledProcessError as e:
