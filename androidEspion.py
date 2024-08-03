@@ -12,18 +12,37 @@ class ConnectApp(customtkinter.CTk):
         super().__init__()
 
         self.title("Android Espion")
-        self.geometry("1920x1080")
+        
+        # Set fixed resolution for 720p
+        self.app_width = 1280
+        self.app_height = 720
+        
+        # Center the window on the screen
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        x = (screen_width - self.app_width) // 2
+        y = (screen_height - self.app_height) // 2
+        
+        self.geometry(f"{self.app_width}x{self.app_height}+{x}+{y}")
+        
+        # Make the window full screen initially
+        self.attributes('-fullscreen', True)
+        self.fullscreen = True
+        
+        # Bind the Escape key to toggle fullscreen mode
+        self.bind('<Escape>', self.toggle_fullscreen)
 
         customtkinter.set_appearance_mode("dark")
         customtkinter.set_default_color_theme("blue")
 
-        self.video_label = customtkinter.CTkLabel(self, text="")
-        self.video_label.place(x=0, y=0, relwidth=1, relheight=0.95)
+        self.video_label = customtkinter.CTkLabel(self, text="", width=self.app_width, height=int(self.app_height*0.95))
+        self.video_label.place(x=0, y=0)
 
         self.main_frame = customtkinter.CTkFrame(self, fg_color="transparent")
         self.main_frame.place(relx=0.5, rely=0.45, anchor="center")
 
-        self.status_bar = customtkinter.CTkFrame(self, height=30, fg_color="black")
+        status_bar_height = int(self.app_height * 0.05)
+        self.status_bar = customtkinter.CTkFrame(self, height=status_bar_height, fg_color="black")
         self.status_bar.place(relx=0, rely=0.95, relwidth=1, relheight=0.05)
 
         self.status_var = StringVar()
@@ -54,11 +73,22 @@ class ConnectApp(customtkinter.CTk):
             command=self.disconnect,
             width=200,
             fg_color="red",
-            hover_color="dark red"
+            hover_color="#8B0000",  # Dark red for hover
+            text_color="white",
+            text_color_disabled="gray"
         )
         self.disconnect_button.place(relx=0.5, rely=0.9, anchor="center")
 
         self.show_connect_page()
+
+    def exit_fullscreen(self, event=None):
+        self.attributes('-fullscreen', False)
+
+    def toggle_fullscreen(self, event=None):
+        self.fullscreen = not self.fullscreen
+        self.attributes('-fullscreen', self.fullscreen)
+        if not self.fullscreen:
+            self.geometry(f"{self.app_width}x{self.app_height}")
 
     def play_video(self):
         def video_loop():
@@ -68,14 +98,12 @@ class ConnectApp(customtkinter.CTk):
                 if not ret:
                     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
                     continue
-                frame = cv2.resize(frame, (1920, 1080))
+                frame = cv2.resize(frame, (self.app_width, int(self.app_height*0.95)))
                 cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 img = Image.fromarray(cv2image)
-                ctk_image = CTkImage(light_image=img, dark_image=img, size=(1920, 1080))
+                ctk_image = CTkImage(light_image=img, dark_image=img, size=(self.app_width, int(self.app_height*0.95)))
                 self.video_label.configure(image=ctk_image)
                 self.video_label.image = ctk_image
-
-        threading.Thread(target=video_loop, daemon=True).start()
 
         threading.Thread(target=video_loop, daemon=True).start()
 
