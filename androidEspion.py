@@ -7,6 +7,7 @@ import subprocess
 from tkinter import StringVar
 
 class ConnectApp(customtkinter.CTk):
+    
     def __init__(self):
         super().__init__()
 
