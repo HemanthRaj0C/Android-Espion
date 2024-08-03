@@ -11,37 +11,18 @@ class ConnectApp(customtkinter.CTk):
         super().__init__()
 
         self.title("Android Espion")
-        
-        # Set fixed resolution for 720p
-        self.app_width = 1280
-        self.app_height = 720
-        
-        # Center the window on the screen
-        screen_width = self.winfo_screenwidth()
-        screen_height = self.winfo_screenheight()
-        x = (screen_width - self.app_width) // 2
-        y = (screen_height - self.app_height) // 2
-        
-        self.geometry(f"{self.app_width}x{self.app_height}+{x}+{y}")
-        
-        # Make the window full screen initially
-        self.attributes('-fullscreen', True)
-        self.fullscreen = True
-        
-        # Bind the Escape key to toggle fullscreen mode
-        self.bind('<Escape>', self.toggle_fullscreen)
+        self.geometry("1920x1080")
 
         customtkinter.set_appearance_mode("dark")
         customtkinter.set_default_color_theme("blue")
 
-        self.video_label = customtkinter.CTkLabel(self, text="", width=self.app_width, height=int(self.app_height*0.95))
-        self.video_label.place(x=0, y=0)
+        self.video_label = customtkinter.CTkLabel(self, text="")
+        self.video_label.place(x=0, y=0, relwidth=1, relheight=0.95)
 
         self.main_frame = customtkinter.CTkFrame(self, fg_color="transparent")
         self.main_frame.place(relx=0.5, rely=0.45, anchor="center")
 
-        status_bar_height = int(self.app_height * 0.05)
-        self.status_bar = customtkinter.CTkFrame(self, height=status_bar_height, fg_color="black")
+        self.status_bar = customtkinter.CTkFrame(self, height=30, fg_color="black")
         self.status_bar.place(relx=0, rely=0.95, relwidth=1, relheight=0.05)
 
         self.status_var = StringVar()
@@ -50,7 +31,7 @@ class ConnectApp(customtkinter.CTk):
         self.glow_label = customtkinter.CTkLabel(
             self.status_bar, 
             textvariable=self.status_var,
-            text_color="#33FF33",  # Lighter green for the glow
+            text_color="#33FF33",
             font=("Tahoma", 20, "normal")
         )
         self.glow_label.place(relx=0.5, rely=0.5, anchor="center", x=1, y=1)
@@ -58,13 +39,23 @@ class ConnectApp(customtkinter.CTk):
         self.status_label = customtkinter.CTkLabel(
             self.status_bar, 
             textvariable=self.status_var,
-            text_color="#00FF00",  # Bright green
+            text_color="#00FF00",
             font=("Tahoma", 20, "normal")
         )
         self.status_label.place(relx=0.5, rely=0.5, anchor="center")
 
         self.video_path = "bgvid.mp4"  # Replace with your video file path
         self.play_video()
+
+        self.disconnect_button = customtkinter.CTkButton(
+            self,
+            text="Disconnect",
+            command=self.disconnect,
+            width=200,
+            fg_color="red",
+            hover_color="dark red"
+        )
+        self.disconnect_button.place(relx=0.5, rely=0.9, anchor="center")
 
         self.disconnect_button = customtkinter.CTkButton(
             self,
@@ -80,15 +71,6 @@ class ConnectApp(customtkinter.CTk):
 
         self.show_connect_page()
 
-    def exit_fullscreen(self, event=None):
-        self.attributes('-fullscreen', False)
-
-    def toggle_fullscreen(self, event=None):
-        self.fullscreen = not self.fullscreen
-        self.attributes('-fullscreen', self.fullscreen)
-        if not self.fullscreen:
-            self.geometry(f"{self.app_width}x{self.app_height}")
-
     def play_video(self):
         def video_loop():
             cap = cv2.VideoCapture(self.video_path)
@@ -97,12 +79,14 @@ class ConnectApp(customtkinter.CTk):
                 if not ret:
                     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
                     continue
-                frame = cv2.resize(frame, (self.app_width, int(self.app_height*0.95)))
+                frame = cv2.resize(frame, (1920, 1080))
                 cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 img = Image.fromarray(cv2image)
-                ctk_image = CTkImage(light_image=img, dark_image=img, size=(self.app_width, int(self.app_height*0.95)))
+                ctk_image = CTkImage(light_image=img, dark_image=img, size=(1920, 1080))
                 self.video_label.configure(image=ctk_image)
                 self.video_label.image = ctk_image
+
+        threading.Thread(target=video_loop, daemon=True).start()
 
         threading.Thread(target=video_loop, daemon=True).start()
 
@@ -121,7 +105,16 @@ class ConnectApp(customtkinter.CTk):
 
         self.input_entry.bind("<Return>", lambda event: self.on_connect())
 
-        self.connect_button = customtkinter.CTkButton(content_frame, text="Connect", command=self.on_connect, width=200)
+        self.connect_button = customtkinter.CTkButton(
+            content_frame, 
+            text="Connect", 
+            command=self.on_connect, 
+            width=200,
+            fg_color="#1E90FF",  # Dodger Blue
+            hover_color="#4169E1",  # Royal Blue
+            text_color="white",
+            text_color_disabled="gray"
+        )
         self.connect_button.pack(pady=10)
 
         self.status_label = customtkinter.CTkLabel(content_frame, text="")
@@ -159,16 +152,33 @@ class ConnectApp(customtkinter.CTk):
         title_label = customtkinter.CTkLabel(button_frame, text="Function Selection", font=("Helvetica", 24))
         title_label.grid(row=0, column=0, columnspan=4, pady=(0, 20))
 
-        functions = ["Disconnect","Function 2", "Function 3", "Function 4",
+        functions = ["Function 2", "Function 3", "Function 4",
                      "Function 5", "Function 6", "Function 7", "Function 8"]
 
         for i, func_name in enumerate(functions):
-            button = customtkinter.CTkButton(button_frame, text=func_name, 
-                                             command=lambda x=i: self.custom_function(x+1),
-                                             width=200, height=50)
+            button = customtkinter.CTkButton(
+                button_frame, 
+                text=func_name, 
+                command=lambda x=i: self.custom_function(x+2),
+                width=200, 
+                height=50,
+                fg_color="#4682B4",  # Steel Blue
+                hover_color="#5F9EA0",  # Cadet Blue
+                text_color="white",
+                text_color_disabled="gray"
+            )
             button.grid(row=(i//4)+1, column=i%4, padx=10, pady=10)
 
-        back_button = customtkinter.CTkButton(button_frame, text="Back", command=self.show_connect_page, width=200)
+        back_button = customtkinter.CTkButton(
+            button_frame, 
+            text="Back", 
+            command=self.show_connect_page, 
+            width=200,
+            fg_color="#808080",  # Gray
+            hover_color="#A9A9A9",  # Dark Gray
+            text_color="white",
+            text_color_disabled="gray"
+        )
         back_button.grid(row=3, column=1, columnspan=2, pady=(20, 0))
 
     def custom_function(self, function_number):
@@ -185,6 +195,7 @@ class ConnectApp(customtkinter.CTk):
             result = subprocess.run(["adb", "disconnect"], capture_output=True, text=True)
             if result.returncode == 0:
                 self.update_status("Disconnected successfully")
+                self.show_connect_page()  # Go back to the connect page after disconnecting
             else:
                 self.update_status(f"Disconnect failed: {result.stderr.strip()}")
         except subprocess.CalledProcessError as e:
