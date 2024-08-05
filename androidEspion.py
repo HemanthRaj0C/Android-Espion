@@ -44,7 +44,7 @@ class ConnectApp(customtkinter.CTk):
         )
         self.status_label.place(relx=0.5, rely=0.5, anchor="center")
 
-        self.video_path = "bgvid.mp4"  # Replace with your video file path
+        self.video_path = "video.mp4"  # Replace with your video file path
         self.play_video()
 
         self.disconnect_button = customtkinter.CTkButton(
