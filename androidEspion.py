@@ -108,13 +108,13 @@ class ConnectApp(customtkinter.CTk):
         for widget in self.main_frame.winfo_children():
             widget.destroy()
 
-        content_frame = customtkinter.CTkFrame(self.main_frame, fg_color="transparent")
+        content_frame = customtkinter.CTkFrame(self.main_frame, fg_color="transparent", bg_color="transparent", corner_radius=15)
         content_frame.pack(padx=20, pady=20)
 
-        title_label = customtkinter.CTkLabel(content_frame, text="Connect to Device", font=("Helvetica", 24))
+        title_label = customtkinter.CTkLabel(content_frame, text="Connect to Device", font=("Helvetica", 24), bg_color="transparent",fg_color="transparent")
         title_label.pack(pady=(0, 20))
 
-        self.input_entry = customtkinter.CTkEntry(content_frame, placeholder_text="Enter IP", width=300)
+        self.input_entry = customtkinter.CTkEntry(content_frame, placeholder_text="Enter IP", width=300, corner_radius=10)
         self.input_entry.pack(pady=10)
 
         self.input_entry.bind("<Return>", lambda event: self.on_connect())
@@ -127,7 +127,8 @@ class ConnectApp(customtkinter.CTk):
             fg_color="#1E90FF",  # Dodger Blue
             hover_color="#4169E1",  # Royal Blue
             text_color="white",
-            text_color_disabled="gray"
+            text_color_disabled="gray",
+            corner_radius=10
         )
         self.connect_button.pack(pady=10)
 
@@ -216,7 +217,7 @@ class ConnectApp(customtkinter.CTk):
     def open_app(self):
         app_window = customtkinter.CTkToplevel(self)
         app_window.title("Open App")
-        app_window.geometry("400x400")
+        app_window.geometry("400x300")
         app_window.grab_set()
         app_window.focus_set()
 
@@ -228,35 +229,27 @@ class ConnectApp(customtkinter.CTk):
         package_entry = customtkinter.CTkEntry(app_window, placeholder_text="Enter Package name")
         package_entry.pack(pady=10)
 
-        app_listbox = customtkinter.CTkTextbox(app_window, height=200)
-        app_listbox.pack(pady=10)
-
-        selected_app = customtkinter.StringVar()
+        app_option_menu = customtkinter.CTkOptionMenu(app_window, values=[], dynamic_resizing=False)
+        app_option_menu.set("Select an App")  # Set initial text
+        app_option_menu.pack(pady=10)
 
         def load_apps():
-            app_listbox.delete("1.0", customtkinter.END)
             if mode_var.get() == "1":
                 package_entry.pack_forget()
-                app_listbox.pack(pady=10)
+                app_option_menu.pack(pady=10)
                 apps = subprocess.check_output(["adb", "shell", "pm", "list", "packages", "-3"]).decode().strip().split("\n")
-                for i, app in enumerate(apps, 1):
-                    app = app.replace("package:", "")
-                    app_listbox.insert(customtkinter.END, f"{i}) {app}\n")
+                app_list = [app.replace("package:", "") for app in apps]
+                app_option_menu.configure(values=app_list)
+                app_option_menu.set("Select an App")  # Reset to default text after loading
             else:
-                app_listbox.pack_forget()
+                app_option_menu.pack_forget()
                 package_entry.pack(pady=10)
 
         customtkinter.CTkButton(app_window, text="Load Apps", command=load_apps).pack(pady=10)
 
         def open_selected_app():
             if mode_var.get() == "1":
-                selection = app_listbox.get("1.0", customtkinter.END).split("\n")
-                selected_line = app_listbox.get("insert linestart", "insert lineend")
-                if selected_line:
-                    app = selected_line.split(") ")[1]
-                else:
-                    self.update_status("No app selected")
-                    return
+                app = app_option_menu.get()
             else:
                 app = package_entry.get()
             
@@ -280,8 +273,8 @@ class ConnectApp(customtkinter.CTk):
         app_window = customtkinter.CTkToplevel(self)
         app_window.title("Uninstall App")
         app_window.geometry("400x300")
-        app_window.grab_set()  # Make the window modal
-        app_window.focus_set()  # Set focus to the new window
+        app_window.grab_set()
+        app_window.focus_set()
 
         mode_var = customtkinter.StringVar(value="1")
         
@@ -291,29 +284,31 @@ class ConnectApp(customtkinter.CTk):
         package_entry = customtkinter.CTkEntry(app_window, placeholder_text="Enter Package name")
         package_entry.pack(pady=10)
 
-        app_listbox = customtkinter.CTkOptionMenu(app_window, values=[])
-        app_listbox.pack(pady=10)
+        app_option_menu = customtkinter.CTkOptionMenu(app_window, values=[], dynamic_resizing=False)
+        app_option_menu.set("Select an App")  # Set initial text
+        app_option_menu.pack(pady=10)
 
         def load_apps():
             if mode_var.get() == "1":
                 package_entry.pack_forget()
-                app_listbox.pack(pady=10)
+                app_option_menu.pack(pady=10)
                 apps = subprocess.check_output(["adb", "shell", "pm", "list", "packages", "-3"]).decode().strip().split("\n")
-                app_listbox.configure(values=[app.replace("package:", "") for app in apps])
+                app_list = [app.replace("package:", "") for app in apps]
+                app_option_menu.configure(values=app_list)
+                app_option_menu.set("Select an App")  # Reset to default text after loading
             else:
-                app_listbox.pack_forget()
+                app_option_menu.pack_forget()
                 package_entry.pack(pady=10)
 
         customtkinter.CTkButton(app_window, text="Load Apps", command=load_apps).pack(pady=10)
 
-
         def uninstall_selected_app():
             if mode_var.get() == "1":
-                app = app_listbox.get()
+                app = app_option_menu.get()
             else:
                 app = package_entry.get()
             
-            if app:
+            if app and app != "Select an App":
                 result = subprocess.run(["adb", "uninstall", app], capture_output=True, text=True)
                 if result.returncode == 0:
                     self.update_status(f"Uninstalled app: {app}")
