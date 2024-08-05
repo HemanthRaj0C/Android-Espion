@@ -5,6 +5,20 @@ from customtkinter import CTkImage
 import threading
 import subprocess
 from tkinter import StringVar
+import os
+
+class GlowButton(customtkinter.CTkButton):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.configure(fg_color="#4682B4")  # Steel Blue
+            self.bind("<Enter>", self.on_enter)
+            self.bind("<Leave>", self.on_leave)
+
+        def on_enter(self, e):
+            self.configure(fg_color="#00BFFF")  # Deep Sky Blue (glowing effect)
+
+        def on_leave(self, e):
+            self.configure(fg_color="#4682B4")
 
 class ConnectApp(customtkinter.CTk):
     def __init__(self):
@@ -121,8 +135,13 @@ class ConnectApp(customtkinter.CTk):
         self.status_label.pack(pady=10)
 
     def on_connect(self):
+
+        #ACTUAL CONNECTION
         ip = self.input_entry.get()
         threading.Thread(target=self.connect, args=(ip,)).start()
+
+        #TESTING PURPOSE
+        #self.show_function_page()
 
     def connect(self, ip):
         self.status_label.configure(text="Connecting...")
@@ -142,6 +161,7 @@ class ConnectApp(customtkinter.CTk):
         except subprocess.CalledProcessError as e:
             self.status_label.configure(text=f"Error: {e.stderr.strip()}")
 
+
     def show_function_page(self):
         for widget in self.main_frame.winfo_children():
             widget.destroy()
@@ -152,18 +172,16 @@ class ConnectApp(customtkinter.CTk):
         title_label = customtkinter.CTkLabel(button_frame, text="Function Selection", font=("Helvetica", 24))
         title_label.grid(row=0, column=0, columnspan=4, pady=(0, 20))
 
-        functions = ["Function 2", "Function 3", "Function 4",
-                     "Function 5", "Function 6", "Function 7", "Function 8"]
+        functions = ["Taking Screenshot", "List of Connected Devices", "Function 3", "Function 4",
+                    "Function 5", "Function 6", "Function 7", "Function 8"]
 
         for i, func_name in enumerate(functions):
-            button = customtkinter.CTkButton(
+            button = GlowButton(
                 button_frame, 
                 text=func_name, 
                 command=lambda x=i: self.custom_function(x+2),
                 width=200, 
                 height=50,
-                fg_color="#4682B4",  # Steel Blue
-                hover_color="#5F9EA0",  # Cadet Blue
                 text_color="white",
                 text_color_disabled="gray"
             )
@@ -181,11 +199,12 @@ class ConnectApp(customtkinter.CTk):
         )
         back_button.grid(row=3, column=1, columnspan=2, pady=(20, 0))
 
+        self.update()
+
     def custom_function(self, function_number):
-        if function_number == 1:
-            self.disconnect()
-            self.status_label.configure(text="Disconnected")
-        elif function_number == 2:
+        if function_number == 2:
+            self.screenShot()
+        elif function_number == 3:
             self.list_devices()
         else:
             print(f"Function {function_number} called")
@@ -216,11 +235,36 @@ class ConnectApp(customtkinter.CTk):
         except subprocess.CalledProcessError as e:
             self.update_status(f"Error listing devices: {e.stderr.strip()}")
 
+    def screenShot(self):
+        try:
+            # Check if the directory exists, if not, create it
+            if not os.path.exists('files'):
+                os.makedirs('files')
+            
+            # Run adb commands to take screenshot and pull it to the local machine
+            screencap_command = ["adb", "shell", "screencap", "-p", "/sdcard/screen.png"]
+            pull_command = ["adb", "pull", "/sdcard/screen.png", "files/screen.png"]
+            
+            # Execute screencap command
+            result = subprocess.run(screencap_command, capture_output=True, text=True)
+            if result.returncode != 0:
+                raise Exception(f"Failed to capture screenshot on device: {result.stderr}")
+            
+            # Execute pull command
+            result = subprocess.run(pull_command, capture_output=True, text=True)
+            if result.returncode != 0:
+                raise Exception(f"Failed to pull screenshot: {result.stderr}")
+            
+            # Open the screenshot
+            os.system("start files/screen.png")
+            self.update_status("Screenshot taken and opened")
+        except Exception as e:
+            self.update_status(f"Error taking screenshot: {str(e)}")
+
     def update_status(self, message):
         self.status_var.set(message)
         self.update_idletasks()
             
-    
 
 if __name__ == "__main__":
     app = ConnectApp()
