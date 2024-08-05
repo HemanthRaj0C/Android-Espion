@@ -172,9 +172,9 @@ class ConnectApp(customtkinter.CTk):
         title_label = customtkinter.CTkLabel(button_frame, text="Function Selection", font=("Helvetica", 24))
         title_label.grid(row=0, column=0, columnspan=4, pady=(0, 20))
 
-        functions = ["Taking Screenshot", "List of Connected Devices", "Function 3", "Function 4",
+        functions = ["Taking Screenshot", "List of Connected Devices", "Open App", "Uninstall App",
                     "Function 5", "Function 6", "Function 7", "Function 8"]
-
+        
         for i, func_name in enumerate(functions):
             button = GlowButton(
                 button_frame, 
@@ -206,8 +206,128 @@ class ConnectApp(customtkinter.CTk):
             self.screenShot()
         elif function_number == 3:
             self.list_devices()
+        elif function_number == 4:
+            self.open_app()
+        elif function_number == 5:
+            self.uninstall_app()
         else:
             print(f"Function {function_number} called")
+
+    def open_app(self):
+        app_window = customtkinter.CTkToplevel(self)
+        app_window.title("Open App")
+        app_window.geometry("400x400")
+        app_window.grab_set()
+        app_window.focus_set()
+
+        mode_var = customtkinter.StringVar(value="1")
+        
+        customtkinter.CTkRadioButton(app_window, text="Select app from list", variable=mode_var, value="1").pack(pady=10)
+        customtkinter.CTkRadioButton(app_window, text="Enter Package name", variable=mode_var, value="2").pack(pady=10)
+
+        package_entry = customtkinter.CTkEntry(app_window, placeholder_text="Enter Package name")
+        package_entry.pack(pady=10)
+
+        app_listbox = customtkinter.CTkTextbox(app_window, height=200)
+        app_listbox.pack(pady=10)
+
+        selected_app = customtkinter.StringVar()
+
+        def load_apps():
+            app_listbox.delete("1.0", customtkinter.END)
+            if mode_var.get() == "1":
+                package_entry.pack_forget()
+                app_listbox.pack(pady=10)
+                apps = subprocess.check_output(["adb", "shell", "pm", "list", "packages", "-3"]).decode().strip().split("\n")
+                for i, app in enumerate(apps, 1):
+                    app = app.replace("package:", "")
+                    app_listbox.insert(customtkinter.END, f"{i}) {app}\n")
+            else:
+                app_listbox.pack_forget()
+                package_entry.pack(pady=10)
+
+        customtkinter.CTkButton(app_window, text="Load Apps", command=load_apps).pack(pady=10)
+
+        def open_selected_app():
+            if mode_var.get() == "1":
+                selection = app_listbox.get("1.0", customtkinter.END).split("\n")
+                selected_line = app_listbox.get("insert linestart", "insert lineend")
+                if selected_line:
+                    app = selected_line.split(") ")[1]
+                else:
+                    self.update_status("No app selected")
+                    return
+            else:
+                app = package_entry.get()
+            
+            if app:
+                result = subprocess.run(["adb", "shell", "monkey", "-p", app, "1"], capture_output=True, text=True)
+                if result.returncode == 0:
+                    self.update_status(f"Opened app: {app}")
+                else:
+                    self.update_status(f"Failed to open app: {result.stderr.strip()}")
+            else:
+                self.update_status("No app selected")
+            app_window.destroy()
+
+        customtkinter.CTkButton(app_window, text="Open App", command=open_selected_app).pack(pady=10)
+
+        app_window.lift()
+        app_window.attributes('-topmost', True)
+        app_window.after_idle(app_window.attributes, '-topmost', False)
+
+    def uninstall_app(self):
+        app_window = customtkinter.CTkToplevel(self)
+        app_window.title("Uninstall App")
+        app_window.geometry("400x300")
+        app_window.grab_set()  # Make the window modal
+        app_window.focus_set()  # Set focus to the new window
+
+        mode_var = customtkinter.StringVar(value="1")
+        
+        customtkinter.CTkRadioButton(app_window, text="Select app from list", variable=mode_var, value="1").pack(pady=10)
+        customtkinter.CTkRadioButton(app_window, text="Enter Package name", variable=mode_var, value="2").pack(pady=10)
+
+        package_entry = customtkinter.CTkEntry(app_window, placeholder_text="Enter Package name")
+        package_entry.pack(pady=10)
+
+        app_listbox = customtkinter.CTkOptionMenu(app_window, values=[])
+        app_listbox.pack(pady=10)
+
+        def load_apps():
+            if mode_var.get() == "1":
+                package_entry.pack_forget()
+                app_listbox.pack(pady=10)
+                apps = subprocess.check_output(["adb", "shell", "pm", "list", "packages", "-3"]).decode().strip().split("\n")
+                app_listbox.configure(values=[app.replace("package:", "") for app in apps])
+            else:
+                app_listbox.pack_forget()
+                package_entry.pack(pady=10)
+
+        customtkinter.CTkButton(app_window, text="Load Apps", command=load_apps).pack(pady=10)
+
+
+        def uninstall_selected_app():
+            if mode_var.get() == "1":
+                app = app_listbox.get()
+            else:
+                app = package_entry.get()
+            
+            if app:
+                result = subprocess.run(["adb", "uninstall", app], capture_output=True, text=True)
+                if result.returncode == 0:
+                    self.update_status(f"Uninstalled app: {app}")
+                else:
+                    self.update_status(f"Failed to uninstall app: {result.stderr.strip()}")
+            else:
+                self.update_status("No app selected")
+            app_window.destroy()
+
+        customtkinter.CTkButton(app_window, text="Uninstall App", command=uninstall_selected_app).pack(pady=10)
+
+        app_window.lift()
+        app_window.attributes('-topmost', True)
+        app_window.after_idle(app_window.attributes, '-topmost', False)
 
     def disconnect(self):
         try:
