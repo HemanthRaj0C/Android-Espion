@@ -58,7 +58,7 @@ class ConnectApp(customtkinter.CTk):
         )
         self.status_label.place(relx=0.5, rely=0.5, anchor="center")
 
-        self.video_path = "video.mp4"  # Replace with your video file path
+        self.video_path = "newVid.mp4"  # Replace with your video file path
         self.play_video()
 
         self.disconnect_button = customtkinter.CTkButton(
@@ -97,7 +97,7 @@ class ConnectApp(customtkinter.CTk):
                 cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 img = Image.fromarray(cv2image)
                 ctk_image = CTkImage(light_image=img, dark_image=img, size=(1920, 1080))
-                self.video_label.configure(image=ctk_image)
+                # self.video_label.configure(image=ctk_image) 
                 self.video_label.image = ctk_image
 
         threading.Thread(target=video_loop, daemon=True).start()
@@ -138,11 +138,11 @@ class ConnectApp(customtkinter.CTk):
     def on_connect(self):
 
         #ACTUAL CONNECTION
-        ip = self.input_entry.get()
-        threading.Thread(target=self.connect, args=(ip,)).start()
+        # ip = self.input_entry.get()
+        # threading.Thread(target=self.connect, args=(ip,)).start()
 
         #TESTING PURPOSE
-        #self.show_function_page()
+        self.show_function_page()
 
     def connect(self, ip):
         self.status_label.configure(text="Connecting...")
@@ -249,7 +249,7 @@ class ConnectApp(customtkinter.CTk):
 
         def open_selected_app():
             if mode_var.get() == "1":
-                app = app_option_menu.get()
+                app = app_option_menu.get().strip()
             else:
                 app = package_entry.get()
             
