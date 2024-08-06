@@ -174,7 +174,7 @@ class ConnectApp(customtkinter.CTk):
         title_label.grid(row=0, column=0, columnspan=4, pady=(0, 20))
 
         functions = ["Taking Screenshot", "List of Connected Devices", "Open App", "Uninstall App",
-                    "Mirror Screen", "Function 6", "Function 7", "Function 8"]
+                    "Screen Mirror", "Function 6", "Function 7", "Function 8"]
         
         for i, func_name in enumerate(functions):
             button = GlowButton(
