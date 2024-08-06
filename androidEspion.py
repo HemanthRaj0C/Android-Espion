@@ -58,7 +58,7 @@ class ConnectApp(customtkinter.CTk):
         )
         self.status_label.place(relx=0.5, rely=0.5, anchor="center")
 
-        self.video_path = "video.mp4"  # Replace with your video file path
+        self.video_path = "newVid.mp4"  # Replace with your video file path
         self.play_video()
 
         self.disconnect_button = customtkinter.CTkButton(
@@ -97,7 +97,7 @@ class ConnectApp(customtkinter.CTk):
                 cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 img = Image.fromarray(cv2image)
                 ctk_image = CTkImage(light_image=img, dark_image=img, size=(1920, 1080))
-                self.video_label.configure(image=ctk_image)
+                self.video_label.configure(image=ctk_image) 
                 self.video_label.image = ctk_image
 
         threading.Thread(target=video_loop, daemon=True).start()
@@ -108,13 +108,13 @@ class ConnectApp(customtkinter.CTk):
         for widget in self.main_frame.winfo_children():
             widget.destroy()
 
-        content_frame = customtkinter.CTkFrame(self.main_frame, fg_color="transparent")
+        content_frame = customtkinter.CTkFrame(self.main_frame, fg_color="transparent", bg_color="transparent", corner_radius=15)
         content_frame.pack(padx=20, pady=20)
 
-        title_label = customtkinter.CTkLabel(content_frame, text="Connect to Device", font=("Helvetica", 24))
+        title_label = customtkinter.CTkLabel(content_frame, text="Connect to Device", font=("Helvetica", 24), bg_color="transparent",fg_color="transparent")
         title_label.pack(pady=(0, 20))
 
-        self.input_entry = customtkinter.CTkEntry(content_frame, placeholder_text="Enter IP", width=300)
+        self.input_entry = customtkinter.CTkEntry(content_frame, placeholder_text="Enter IP", width=300, corner_radius=10)
         self.input_entry.pack(pady=10)
 
         self.input_entry.bind("<Return>", lambda event: self.on_connect())
@@ -127,7 +127,8 @@ class ConnectApp(customtkinter.CTk):
             fg_color="#1E90FF",  # Dodger Blue
             hover_color="#4169E1",  # Royal Blue
             text_color="white",
-            text_color_disabled="gray"
+            text_color_disabled="gray",
+            corner_radius=10
         )
         self.connect_button.pack(pady=10)
 
@@ -172,9 +173,9 @@ class ConnectApp(customtkinter.CTk):
         title_label = customtkinter.CTkLabel(button_frame, text="Function Selection", font=("Helvetica", 24))
         title_label.grid(row=0, column=0, columnspan=4, pady=(0, 20))
 
-        functions = ["Taking Screenshot", "List of Connected Devices", "Function 3", "Function 4",
-                    "Function 5", "Function 6", "Function 7", "Function 8"]
-
+        functions = ["Taking Screenshot", "List of Connected Devices", "Open App", "Uninstall App",
+                    "Mirror Screen", "Function 6", "Function 7", "Function 8"]
+        
         for i, func_name in enumerate(functions):
             button = GlowButton(
                 button_frame, 
@@ -206,8 +207,124 @@ class ConnectApp(customtkinter.CTk):
             self.screenShot()
         elif function_number == 3:
             self.list_devices()
+        elif function_number == 4:
+            self.open_app()
+        elif function_number == 5:
+            self.uninstall_app()
+        elif function_number == 6:
+            self.screen_copy()
         else:
             print(f"Function {function_number} called")
+
+    def open_app(self):
+        app_window = customtkinter.CTkToplevel(self)
+        app_window.title("Open App")
+        app_window.geometry("400x300")
+        app_window.grab_set()
+        app_window.focus_set()
+
+        mode_var = customtkinter.StringVar(value="1")
+        
+        customtkinter.CTkRadioButton(app_window, text="Select app from list", variable=mode_var, value="1").pack(pady=10)
+        customtkinter.CTkRadioButton(app_window, text="Enter Package name", variable=mode_var, value="2").pack(pady=10)
+
+        package_entry = customtkinter.CTkEntry(app_window, placeholder_text="Enter Package name")
+        package_entry.pack(pady=10)
+
+        app_option_menu = customtkinter.CTkOptionMenu(app_window, values=[], dynamic_resizing=False)
+        app_option_menu.set("Select an App")  # Set initial text
+        app_option_menu.pack(pady=10)
+
+        def load_apps():
+            if mode_var.get() == "1":
+                package_entry.pack_forget()
+                app_option_menu.pack(pady=10)
+                apps = subprocess.check_output(["adb", "shell", "pm", "list", "packages", "-3"]).decode().strip().split("\n")
+                app_list = [app.replace("package:", "") for app in apps]
+                app_option_menu.configure(values=app_list)
+                app_option_menu.set("Select an App")  # Reset to default text after loading
+            else:
+                app_option_menu.pack_forget()
+                package_entry.pack(pady=10)
+
+        customtkinter.CTkButton(app_window, text="Load Apps", command=load_apps).pack(pady=10)
+
+        def open_selected_app():
+            if mode_var.get() == "1":
+                app = app_option_menu.get().strip()
+            else:
+                app = package_entry.get()
+            
+            if app:
+                result = subprocess.run(["adb", "shell", "monkey", "-p", app, "1"], capture_output=True, text=True)
+                if result.returncode == 0:
+                    self.update_status(f"Opened app: {app}")
+                else:
+                    self.update_status(f"Failed to open app: {result.stderr.strip()}")
+            else:
+                self.update_status("No app selected")
+            app_window.destroy()
+
+        customtkinter.CTkButton(app_window, text="Open App", command=open_selected_app).pack(pady=10)
+
+        app_window.lift()
+        app_window.attributes('-topmost', True)
+        app_window.after_idle(app_window.attributes, '-topmost', False)
+
+    def uninstall_app(self):
+        app_window = customtkinter.CTkToplevel(self)
+        app_window.title("Uninstall App")
+        app_window.geometry("400x300")
+        app_window.grab_set()
+        app_window.focus_set()
+
+        mode_var = customtkinter.StringVar(value="1")
+        
+        customtkinter.CTkRadioButton(app_window, text="Select app from list", variable=mode_var, value="1").pack(pady=10)
+        customtkinter.CTkRadioButton(app_window, text="Enter Package name", variable=mode_var, value="2").pack(pady=10)
+
+        package_entry = customtkinter.CTkEntry(app_window, placeholder_text="Enter Package name")
+        package_entry.pack(pady=10)
+
+        app_option_menu = customtkinter.CTkOptionMenu(app_window, values=[], dynamic_resizing=False)
+        app_option_menu.set("Select an App")  # Set initial text
+        app_option_menu.pack(pady=10)
+
+        def load_apps():
+            if mode_var.get() == "1":
+                package_entry.pack_forget()
+                app_option_menu.pack(pady=10)
+                apps = subprocess.check_output(["adb", "shell", "pm", "list", "packages", "-3"]).decode().strip().split("\n")
+                app_list = [app.replace("package:", "") for app in apps]
+                app_option_menu.configure(values=app_list)
+                app_option_menu.set("Select an App")  # Reset to default text after loading
+            else:
+                app_option_menu.pack_forget()
+                package_entry.pack(pady=10)
+
+        customtkinter.CTkButton(app_window, text="Load Apps", command=load_apps).pack(pady=10)
+
+        def uninstall_selected_app():
+            if mode_var.get() == "1":
+                app = app_option_menu.get().strip()
+            else:
+                app = package_entry.get()
+            
+            if app and app != "Select an App":
+                result = subprocess.run(["adb", "uninstall", app], capture_output=True, text=True)
+                if result.returncode == 0:
+                    self.update_status(f"Uninstalled app: {app}")
+                else:
+                    self.update_status(f"Failed to uninstall app: {result.stderr.strip()}")
+            else:
+                self.update_status("No app selected")
+            app_window.destroy()
+
+        customtkinter.CTkButton(app_window, text="Uninstall App", command=uninstall_selected_app).pack(pady=10)
+
+        app_window.lift()
+        app_window.attributes('-topmost', True)
+        app_window.after_idle(app_window.attributes, '-topmost', False)
 
     def disconnect(self):
         try:
@@ -264,6 +381,9 @@ class ConnectApp(customtkinter.CTk):
     def update_status(self, message):
         self.status_var.set(message)
         self.update_idletasks()
+
+    def screen_copy(self):
+        os.system("scrcpy")
             
 
 if __name__ == "__main__":
