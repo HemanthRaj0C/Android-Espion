@@ -174,7 +174,7 @@ class ConnectApp(customtkinter.CTk):
         title_label.grid(row=0, column=0, columnspan=4, pady=(0, 20))
 
         functions = ["Taking Screenshot", "List of Connected Devices", "Open App", "Uninstall App",
-                    "Function 5", "Function 6", "Function 7", "Function 8"]
+                    "Mirror Screen", "Function 6", "Function 7", "Function 8"]
         
         for i, func_name in enumerate(functions):
             button = GlowButton(
@@ -211,6 +211,8 @@ class ConnectApp(customtkinter.CTk):
             self.open_app()
         elif function_number == 5:
             self.uninstall_app()
+        elif function_number == 6:
+            self.screen_copy()
         else:
             print(f"Function {function_number} called")
 
@@ -379,6 +381,9 @@ class ConnectApp(customtkinter.CTk):
     def update_status(self, message):
         self.status_var.set(message)
         self.update_idletasks()
+
+    def screen_copy(self):
+        os.system("scrcpy")
             
 
 if __name__ == "__main__":
