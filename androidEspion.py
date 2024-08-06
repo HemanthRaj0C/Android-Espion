@@ -97,7 +97,7 @@ class ConnectApp(customtkinter.CTk):
                 cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 img = Image.fromarray(cv2image)
                 ctk_image = CTkImage(light_image=img, dark_image=img, size=(1920, 1080))
-                # self.video_label.configure(image=ctk_image) 
+                self.video_label.configure(image=ctk_image) 
                 self.video_label.image = ctk_image
 
         threading.Thread(target=video_loop, daemon=True).start()
@@ -138,11 +138,11 @@ class ConnectApp(customtkinter.CTk):
     def on_connect(self):
 
         #ACTUAL CONNECTION
-        # ip = self.input_entry.get()
-        # threading.Thread(target=self.connect, args=(ip,)).start()
+        ip = self.input_entry.get()
+        threading.Thread(target=self.connect, args=(ip,)).start()
 
         #TESTING PURPOSE
-        self.show_function_page()
+        #self.show_function_page()
 
     def connect(self, ip):
         self.status_label.configure(text="Connecting...")
