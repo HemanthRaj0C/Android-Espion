@@ -304,7 +304,7 @@ class ConnectApp(customtkinter.CTk):
 
         def uninstall_selected_app():
             if mode_var.get() == "1":
-                app = app_option_menu.get()
+                app = app_option_menu.get().strip()
             else:
                 app = package_entry.get()
             
