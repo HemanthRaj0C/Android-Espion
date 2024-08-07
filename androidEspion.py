@@ -1,4 +1,5 @@
 import customtkinter
+from tkinter import filedialog
 import cv2
 from PIL import Image
 from customtkinter import CTkImage
@@ -97,7 +98,7 @@ class ConnectApp(customtkinter.CTk):
                 cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 img = Image.fromarray(cv2image)
                 ctk_image = CTkImage(light_image=img, dark_image=img, size=(1920, 1080))
-                self.video_label.configure(image=ctk_image) 
+                # self.video_label.configure(image=ctk_image) 
                 self.video_label.image = ctk_image
 
         threading.Thread(target=video_loop, daemon=True).start()
@@ -174,7 +175,7 @@ class ConnectApp(customtkinter.CTk):
         title_label.grid(row=0, column=0, columnspan=4, pady=(0, 20))
 
         functions = ["Taking Screenshot", "List of Connected Devices", "Open App", "Uninstall App",
-                    "Screen Mirror", "Function 6", "Function 7", "Function 8"]
+                    "Screen Mirror", "Open Image in phone", "Function 7", "Function 8"]
         
         for i, func_name in enumerate(functions):
             button = GlowButton(
@@ -213,6 +214,8 @@ class ConnectApp(customtkinter.CTk):
             self.uninstall_app()
         elif function_number == 6:
             self.screen_copy()
+        elif function_number == 7:
+            self.open_image_on_phone()
         else:
             print(f"Function {function_number} called")
 
@@ -414,6 +417,85 @@ class ConnectApp(customtkinter.CTk):
         screen_copy_window.lift()
         screen_copy_window.attributes('-topmost', True)
         screen_copy_window.after_idle(screen_copy_window.attributes, '-topmost', False)
+    
+    def open_image_on_phone(self):
+        screen_photo_window = customtkinter.CTkToplevel(self)
+        screen_photo_window.title("Open Photo on Device")
+        screen_photo_window.geometry("400x250")
+        screen_photo_window.configure(fg_color="black")
+        screen_photo_window.grab_set()
+        screen_photo_window.focus_set()
+
+        title_label = customtkinter.CTkLabel(screen_photo_window, text="Select Photo to Open on Device", 
+                                             font=("Helvetica", 18, "bold"), text_color="#00FF00")
+        title_label.pack(pady=(20, 30))
+
+        self.file_path_var = customtkinter.StringVar()
+        file_path_entry = customtkinter.CTkEntry(screen_photo_window, textvariable=self.file_path_var, width=300)
+        file_path_entry.pack(pady=10)
+
+        def browse_file():
+            file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg *.jpeg *.png *.bmp *.gif")])
+            if file_path:
+                self.file_path_var.set(file_path)
+
+        browse_button = customtkinter.CTkButton(
+            screen_photo_window,
+            text="Browse",
+            command=browse_file,
+            fg_color="#1E90FF",
+            hover_color="#4169E1",
+            text_color="white",
+            corner_radius=10
+        )
+        browse_button.pack(pady=10)
+
+        def push_and_open_photo():
+            location = self.file_path_var.get().strip()
+            if not location:
+                self.update_status("No file selected")
+                return
+
+            if not os.path.isfile(location):
+                self.update_status("Selected file does not exist")
+                return
+
+            try:
+                # Push file to device
+                result = subprocess.run(["adb", "push", location, "/sdcard/"], capture_output=True, text=True)
+                if result.returncode != 0:
+                    raise Exception(f"Failed to push file: {result.stderr}")
+
+                # Get filename
+                file_name = os.path.basename(location)
+
+                # Open file on device
+                result = subprocess.run([
+                    "adb", "shell", "am", "start", 
+                    "-a", "android.intent.action.VIEW", 
+                    "-d", f"file:///sdcard/{file_name}", 
+                    "-t", "image/*"
+                ], capture_output=True, text=True)
+                
+                if result.returncode != 0:
+                    raise Exception(f"Failed to open file: {result.stderr}")
+
+                self.update_status(f"Opened photo: {file_name}")
+                screen_photo_window.destroy()
+            
+            except Exception as e:
+                self.update_status(f"Error: {str(e)}")
+
+        open_button = customtkinter.CTkButton(
+            screen_photo_window,
+            text="Open on Device",
+            command=push_and_open_photo,
+            fg_color="#1E90FF",
+            hover_color="#4169E1",
+            text_color="white",
+            corner_radius=10
+        )
+        open_button.pack(pady=20)
             
 
 if __name__ == "__main__":
