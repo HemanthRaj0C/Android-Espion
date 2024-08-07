@@ -1,4 +1,3 @@
-from typing import Self
 import customtkinter
 import cv2
 from PIL import Image
@@ -28,8 +27,8 @@ class ConnectApp(customtkinter.CTk):
         self.title("Android Espion")
         self.geometry("1920x1080")
 
-        customtkinter.set_appearance_mode("dark")
-        customtkinter.set_default_color_theme("blue")
+        customtkinter.set_default_color_theme("dark-blue")
+        self.configure(fg_color="black")
 
         self.video_label = customtkinter.CTkLabel(self, text="")
         self.video_label.place(x=0, y=0, relwidth=1, relheight=0.95)
@@ -98,7 +97,7 @@ class ConnectApp(customtkinter.CTk):
                 cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 img = Image.fromarray(cv2image)
                 ctk_image = CTkImage(light_image=img, dark_image=img, size=(1920, 1080))
-                # self.video_label.configure(image=ctk_image) 
+                self.video_label.configure(image=ctk_image) 
                 self.video_label.image = ctk_image
 
         threading.Thread(target=video_loop, daemon=True).start()
