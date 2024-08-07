@@ -1,3 +1,4 @@
+from typing import Self
 import customtkinter
 import cv2
 from PIL import Image
@@ -33,7 +34,7 @@ class ConnectApp(customtkinter.CTk):
         self.video_label = customtkinter.CTkLabel(self, text="")
         self.video_label.place(x=0, y=0, relwidth=1, relheight=0.95)
 
-        self.main_frame = customtkinter.CTkFrame(self, fg_color="transparent")
+        self.main_frame = customtkinter.CTkFrame(self, fg_color="black")
         self.main_frame.place(relx=0.5, rely=0.45, anchor="center")
 
         self.status_bar = customtkinter.CTkFrame(self, height=30, fg_color="black")
@@ -97,7 +98,7 @@ class ConnectApp(customtkinter.CTk):
                 cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 img = Image.fromarray(cv2image)
                 ctk_image = CTkImage(light_image=img, dark_image=img, size=(1920, 1080))
-                self.video_label.configure(image=ctk_image) 
+                # self.video_label.configure(image=ctk_image) 
                 self.video_label.image = ctk_image
 
         threading.Thread(target=video_loop, daemon=True).start()
@@ -138,11 +139,11 @@ class ConnectApp(customtkinter.CTk):
     def on_connect(self):
 
         #ACTUAL CONNECTION
-        ip = self.input_entry.get()
-        threading.Thread(target=self.connect, args=(ip,)).start()
+        # ip = self.input_entry.get()
+        # threading.Thread(target=self.connect, args=(ip,)).start()
 
         #TESTING PURPOSE
-        #self.show_function_page()
+        self.show_function_page()
 
     def connect(self, ip):
         self.status_label.configure(text="Connecting...")
@@ -383,7 +384,37 @@ class ConnectApp(customtkinter.CTk):
         self.update_idletasks()
 
     def screen_copy(self):
-        os.system("scrcpy")
+        screen_copy_window = customtkinter.CTkToplevel(self)
+        screen_copy_window.title("Screen Copy Options")
+        screen_copy_window.geometry("400x300")
+        screen_copy_window.grab_set()
+        screen_copy_window.focus_set()
+
+        option_var = customtkinter.StringVar(value="1")
+        
+        customtkinter.CTkRadioButton(screen_copy_window, text="Normal screen mirror", variable=option_var, value="1").pack(pady=10)
+        customtkinter.CTkRadioButton(screen_copy_window, text="Low resolution mirror", variable=option_var, value="2").pack(pady=10)
+
+        def execute_screen_copy():
+            option = option_var.get()
+            if option == "1":
+                command = "scrcpy"
+            elif option == "2":
+                command = "scrcpy -m 1024 -b 1M"
+            
+            try:
+                subprocess.Popen(command, shell=True)
+                self.update_status(f"Executing screen copy with option {option}")
+            except Exception as e:
+                self.update_status(f"Error executing screen copy: {str(e)}")
+            
+            screen_copy_window.destroy()
+
+        customtkinter.CTkButton(screen_copy_window, text="Start Screen Copy", command=execute_screen_copy).pack(pady=20)
+
+        screen_copy_window.lift()
+        screen_copy_window.attributes('-topmost', True)
+        screen_copy_window.after_idle(screen_copy_window.attributes, '-topmost', False)
             
 
 if __name__ == "__main__":
