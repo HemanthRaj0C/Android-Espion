@@ -108,10 +108,10 @@ class ConnectApp(customtkinter.CTk):
         for widget in self.main_frame.winfo_children():
             widget.destroy()
 
-        content_frame = customtkinter.CTkFrame(self.main_frame, fg_color="transparent", bg_color="transparent", corner_radius=15)
-        content_frame.pack(padx=20, pady=20)
+        content_frame = customtkinter.CTkFrame(self.main_frame, fg_color="black", bg_color="black", corner_radius=15)
+        content_frame.pack(padx=0, pady=0)
 
-        title_label = customtkinter.CTkLabel(content_frame, text="Connect to Android", font=("Helvetica", 24), bg_color="transparent",fg_color="transparent")
+        title_label = customtkinter.CTkLabel(content_frame, text="Connect to Android", font=("Helvetica", 24), bg_color="black",fg_color="black")
         title_label.pack(pady=(0, 20))
 
         self.input_entry = customtkinter.CTkEntry(content_frame, placeholder_text="Enter IP", width=300, corner_radius=10)
