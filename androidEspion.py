@@ -138,11 +138,11 @@ class ConnectApp(customtkinter.CTk):
     def on_connect(self):
 
         #ACTUAL CONNECTION
-        ip = self.input_entry.get()
-        threading.Thread(target=self.connect, args=(ip,)).start()
+        #ip = self.input_entry.get()
+        #threading.Thread(target=self.connect, args=(ip,)).start()
 
         #TESTING PURPOSE
-        #self.show_function_page()
+        self.show_function_page()
 
     def connect(self, ip):
         self.status_label.configure(text="Connecting...")
@@ -167,8 +167,8 @@ class ConnectApp(customtkinter.CTk):
         for widget in self.main_frame.winfo_children():
             widget.destroy()
 
-        button_frame = customtkinter.CTkFrame(self.main_frame, fg_color="transparent")
-        button_frame.pack(padx=20, pady=20)
+        button_frame = customtkinter.CTkFrame(self.main_frame, fg_color="black", bg_color="black")
+        button_frame.pack(padx=0, pady=0)
 
         title_label = customtkinter.CTkLabel(button_frame, text="Function Selection", font=("Helvetica", 24))
         title_label.grid(row=0, column=0, columnspan=4, pady=(0, 20))
