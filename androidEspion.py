@@ -173,7 +173,7 @@ class ConnectApp(customtkinter.CTk):
         title_label = customtkinter.CTkLabel(button_frame, text="Function Selection", font=("Helvetica", 24))
         title_label.grid(row=0, column=0, columnspan=4, pady=(0, 20))
 
-        functions = ["Taking Screenshot", "List of Connected Devices", "Open App", "Uninstall App",
+        functions = ["List of Connected Devices", "Taking screenshot", "Open App", "Uninstall App",
                     "Screen Mirror", "Open Image in phone", "Select and pull File", "Listen Audio"]
         
         for i, func_name in enumerate(functions):
@@ -204,9 +204,9 @@ class ConnectApp(customtkinter.CTk):
 
     def custom_function(self, function_number):
         if function_number == 2:
-            self.screenShot()
-        elif function_number == 3:
             self.list_devices()
+        elif function_number == 3:
+            self.screenShot()
         elif function_number == 4:
             self.open_app()
         elif function_number == 5:
