@@ -97,7 +97,7 @@ class ConnectApp(customtkinter.CTk):
                 cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 img = Image.fromarray(cv2image)
                 ctk_image = CTkImage(light_image=img, dark_image=img, size=(1920, 1080))
-                self.video_label.configure(image=ctk_image) 
+                # self.video_label.configure(image=ctk_image) 
                 self.video_label.image = ctk_image
 
         threading.Thread(target=video_loop, daemon=True).start()
@@ -138,11 +138,11 @@ class ConnectApp(customtkinter.CTk):
     def on_connect(self):
 
         #ACTUAL CONNECTION
-        ip = self.input_entry.get()
-        threading.Thread(target=self.connect, args=(ip,)).start()
+        # ip = self.input_entry.get()
+        # threading.Thread(target=self.connect, args=(ip,)).start()
 
         #TESTING PURPOSE
-        #self.show_function_page()
+        self.show_function_page()
 
     def connect(self, ip):
         self.status_label.configure(text="Connecting...")
@@ -643,7 +643,6 @@ class ConnectApp(customtkinter.CTk):
         # Initial content load
         refresh_contents()
     def listen_audio(self):
-        self.audio_process = None
         audio_window = customtkinter.CTkToplevel(self)
         audio_window.title("Listen Audio")
         audio_window.geometry("400x300")
@@ -670,24 +669,25 @@ class ConnectApp(customtkinter.CTk):
             mode = mode_var.get()
             try:
                 result = subprocess.run(["adb", "shell", "getprop", "ro.build.version.release"], 
-                                       capture_output=True, text=True, check=True)
+                                        capture_output=True, text=True, check=True)
                 android_version = result.stdout.strip()
                 android_os = int(android_version.split(".")[0])
                 status_label.configure(text=f"Detected Android Version: {android_version}", text_color="#00FF00")
 
                 if android_os < 11:
                     status_label.configure(text="This feature is only available for Android 11 or higher.", 
-                                          text_color="#FF0000")
+                                        text_color="#FF0000")
                     return
 
                 command = ["scrcpy", "--no-video"]
                 if mode == "mic":
                     command.append("--audio-source=mic")
-
+                
                 # Start the audio streaming in a separate thread
-                self.audio_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                threading.Thread(target=lambda: subprocess.run(command), daemon=True).start()
+                
                 status_label.configure(text=f"Streaming {mode} audio. Close this window to stop.", 
-                                      text_color="#00FF00")
+                                    text_color="#00FF00")
 
             except subprocess.CalledProcessError as e:
                 status_label.configure(text=f"Error: {e.stderr.strip()}", text_color="#FF0000")
@@ -707,9 +707,7 @@ class ConnectApp(customtkinter.CTk):
 
         def on_close():
             # Stop the scrcpy process when closing the window
-            if self.audio_process:
-                self.audio_process.terminate()
-                self.audio_process.wait()
+            subprocess.run(["pkill", "scrcpy"])
             audio_window.destroy()
 
         audio_window.protocol("WM_DELETE_WINDOW", on_close)
