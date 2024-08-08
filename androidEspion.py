@@ -611,22 +611,6 @@ class ConnectApp(customtkinter.CTk):
                     self.update_status("No item selected")
             except Exception as e:
                 self.update_status(f"Error taking screenshot: {str(e)}")
-        def go_back():
-            parent_dir = os.path.dirname(self.current_directory.rstrip('/'))
-            if parent_dir and parent_dir != self.current_directory:
-                self.current_directory = parent_dir
-                refresh_contents(parent_dir)
-
-        back_button = customtkinter.CTkButton(
-            sdcard_window,
-            text="Back",
-            command=go_back,
-            fg_color="#1E90FF",
-            hover_color="#4169E1",
-            text_color="white",
-            corner_radius=10
-        )
-        back_button.pack(side="left", padx=(10, 5), pady=10)
 
         refresh_button = customtkinter.CTkButton(
             sdcard_window,
