@@ -174,7 +174,7 @@ class ConnectApp(customtkinter.CTk):
         title_label.grid(row=0, column=0, columnspan=4, pady=(0, 20))
 
         functions = ["Taking Screenshot", "List of Connected Devices", "Open App", "Uninstall App",
-                    "Screen Mirror", "Open Image in phone", "Select and pull File", "Function 8"]
+                    "Screen Mirror", "Open Image in phone", "Select and pull File", "Listen Audio"]
         
         for i, func_name in enumerate(functions):
             button = GlowButton(
@@ -217,6 +217,8 @@ class ConnectApp(customtkinter.CTk):
             self.open_image_on_phone()
         elif function_number == 8:
             self.pull_file()
+        elif function_number == 9:
+            self.listen_audio()
         else:
             print(f"Function {function_number} called")
 
@@ -640,6 +642,76 @@ class ConnectApp(customtkinter.CTk):
 
         # Initial content load
         refresh_contents()
+    def listen_audio(self):
+        audio_window = customtkinter.CTkToplevel(self)
+        audio_window.title("Listen Audio")
+        audio_window.geometry("400x300")
+        audio_window.grab_set()
+        audio_window.focus_set()
+        title_label = customtkinter.CTkLabel(audio_window, text="Listen Audio", 
+                                         font=("Helvetica", 18, "bold"), text_color="#00FF00")
+        title_label.pack(pady=(20, 30))
+
+        mode_var = customtkinter.StringVar(value="mic")
+
+        mic_radio = customtkinter.CTkRadioButton(audio_window, text="Microphone Audio", 
+                                                variable=mode_var, value="mic")
+        mic_radio.pack(pady=10)
+
+        device_radio = customtkinter.CTkRadioButton(audio_window, text="Device Audio", 
+                                                    variable=mode_var, value="device")
+        device_radio.pack(pady=10)
+
+        status_label = customtkinter.CTkLabel(audio_window, text="", text_color="#FF0000")
+        status_label.pack(pady=10)
+
+        def start_audio_stream():
+            mode = mode_var.get()
+            try:
+                result = subprocess.run(["adb", "shell", "getprop", "ro.build.version.release"], 
+                                        capture_output=True, text=True, check=True)
+                android_version = result.stdout.strip()
+                android_os = int(android_version.split(".")[0])
+                status_label.configure(text=f"Detected Android Version: {android_version}", text_color="#00FF00")
+
+                if android_os < 11:
+                    status_label.configure(text="This feature is only available for Android 11 or higher.", 
+                                        text_color="#FF0000")
+                    return
+
+                command = ["scrcpy", "--no-video"]
+                if mode == "mic":
+                    command.append("--audio-source=mic")
+                
+                # Start the audio streaming in a separate thread
+                threading.Thread(target=lambda: subprocess.run(command), daemon=True).start()
+                
+                status_label.configure(text=f"Streaming {mode} audio. Close this window to stop.", 
+                                    text_color="#00FF00")
+
+            except subprocess.CalledProcessError as e:
+                status_label.configure(text=f"Error: {e.stderr.strip()}", text_color="#FF0000")
+            except ValueError:
+                status_label.configure(text="No connected device found", text_color="#FF0000")
+
+        start_button = customtkinter.CTkButton(
+            audio_window,
+            text="Start Audio Stream",
+            command=start_audio_stream,
+            fg_color="#1E90FF",
+            hover_color="#4169E1",
+            text_color="white",
+            corner_radius=10
+        )
+        start_button.pack(pady=20)
+
+        def on_close():
+            # Stop the scrcpy process when closing the window
+            subprocess.run(["pkill", "scrcpy"])
+            audio_window.destroy()
+
+        audio_window.protocol("WM_DELETE_WINDOW", on_close)
+
 
 if __name__ == "__main__":
     app = ConnectApp()
