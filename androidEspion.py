@@ -97,7 +97,7 @@ class ConnectApp(customtkinter.CTk):
                 cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 img = Image.fromarray(cv2image)
                 ctk_image = CTkImage(light_image=img, dark_image=img, size=(1920, 1080))
-                self.video_label.configure(image=ctk_image) 
+                # self.video_label.configure(image=ctk_image) 
                 self.video_label.image = ctk_image
 
         threading.Thread(target=video_loop, daemon=True).start()
@@ -680,7 +680,7 @@ class ConnectApp(customtkinter.CTk):
                                           text_color="#FF0000")
                     return
 
-                command = ["scrcpy", "--no-video"]
+                command = ["scrcpy", "--no-video","--no-window"]
                 if mode == "mic":
                     command.append("--audio-source=mic")
 
