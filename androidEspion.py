@@ -646,11 +646,12 @@ class ConnectApp(customtkinter.CTk):
         self.audio_process = None
         audio_window = customtkinter.CTkToplevel(self)
         audio_window.title("Listen Audio")
-        audio_window.geometry("400x300")
+        audio_window.geometry("400x350")
         audio_window.grab_set()
         audio_window.focus_set()
+
         title_label = customtkinter.CTkLabel(audio_window, text="Listen Audio", 
-                                         font=("Helvetica", 18, "bold"), text_color="#00FF00")
+                                            font=("Helvetica", 18, "bold"), text_color="#00FF00")
         title_label.pack(pady=(20, 30))
 
         mode_var = customtkinter.StringVar(value="mic")
@@ -670,29 +671,37 @@ class ConnectApp(customtkinter.CTk):
             mode = mode_var.get()
             try:
                 result = subprocess.run(["adb", "shell", "getprop", "ro.build.version.release"], 
-                                       capture_output=True, text=True, check=True)
+                                        capture_output=True, text=True, check=True)
                 android_version = result.stdout.strip()
                 android_os = int(android_version.split(".")[0])
                 status_label.configure(text=f"Detected Android Version: {android_version}", text_color="#00FF00")
 
                 if android_os < 11:
                     status_label.configure(text="This feature is only available for Android 11 or higher.", 
-                                          text_color="#FF0000")
+                                        text_color="#FF0000")
                     return
 
-                command = ["scrcpy", "--no-video","--no-window"]
+                command = ["scrcpy", "--no-video", "--no-window"]
                 if mode == "mic":
                     command.append("--audio-source=mic")
 
-                # Start the audio streaming in a separate thread
+                # Start the audio streaming
                 self.audio_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                status_label.configure(text=f"Streaming {mode} audio. Close this window to stop.", 
-                                      text_color="#00FF00")
+                status_label.configure(text=f"Streaming {mode} audio.", text_color="#00FF00")
+                start_button.configure(state="disabled")
+                stop_button.configure(state="normal")
 
             except subprocess.CalledProcessError as e:
                 status_label.configure(text=f"Error: {e.stderr.strip()}", text_color="#FF0000")
             except ValueError:
                 status_label.configure(text="No connected device found", text_color="#FF0000")
+
+        def stop_audio_stream():
+            if self.audio_process:
+                self.audio_process.terminate()
+                self.audio_process.wait()
+                self.audio_process = None
+            audio_window.destroy()  # Close the widget after stopping the stream
 
         start_button = customtkinter.CTkButton(
             audio_window,
@@ -703,16 +712,24 @@ class ConnectApp(customtkinter.CTk):
             text_color="white",
             corner_radius=10
         )
-        start_button.pack(pady=20)
+        start_button.pack(pady=10)
+
+        stop_button = customtkinter.CTkButton(
+            audio_window,
+            text="Stop Stream and Close",
+            command=stop_audio_stream,
+            fg_color="#FF4500",  # OrangeRed
+            hover_color="#FF6347",  # Tomato
+            text_color="white",
+            corner_radius=10,
+            state="disabled"  # Initially disabled
+        )
+        stop_button.pack(pady=10)
 
         def on_close():
-            # Stop the scrcpy process when closing the window
-            if self.audio_process:
-                self.audio_process.terminate()
-                self.audio_process.wait()
-            audio_window.destroy()
+            stop_audio_stream()
 
-        audio_window.protocol("WM_DELETE_WINDOW", on_close)
+        audio_window.protocol("WM_DELETE_WINDOW", on_close) 
 
 
 if __name__ == "__main__":
