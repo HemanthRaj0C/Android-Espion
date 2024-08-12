@@ -1,12 +1,10 @@
 import customtkinter
 from tkinter import filedialog,ttk
-import cv2
-from PIL import Image
-from customtkinter import CTkImage
 import threading
 import subprocess
 from tkinter import StringVar
 import os
+import random
 
 class GlowButton(customtkinter.CTkButton):
         def __init__(self, *args, **kwargs):
@@ -25,17 +23,76 @@ class ConnectApp(customtkinter.CTk):
     def __init__(self):
         super().__init__()
 
+        self.backgrounds = [
+            """
+    :::     ::::    ::: :::::::::  :::::::::   ::::::::  ::::::::::: :::::::::        ::::::::::  ::::::::  :::::::::  :::::::::::  ::::::::  ::::    ::: 
+  :+: :+:   :+:+:   :+: :+:    :+: :+:    :+: :+:    :+:     :+:     :+:    :+:       :+:        :+:    :+: :+:    :+:     :+:     :+:    :+: :+:+:   :+: 
+ +:+   +:+  :+:+:+  +:+ +:+    +:+ +:+    +:+ +:+    +:+     +:+     +:+    +:+       +:+        +:+        +:+    +:+     +:+     +:+    +:+ :+:+:+  +:+ 
++#++:++#++: +#+ +:+ +#+ +#+    +:+ +#++:++#:  +#+    +:+     +#+     +#+    +:+       +#++:++#   +#++:++#++ +#++:++#+      +#+     +#+    +:+ +#+ +:+ +#+ 
++#+     +#+ +#+  +#+#+# +#+    +#+ +#+    +#+ +#+    +#+     +#+     +#+    +#+       +#+               +#+ +#+            +#+     +#+    +#+ +#+  +#+#+# 
+#+#     #+# #+#   #+#+# #+#    #+# #+#    #+# #+#    #+#     #+#     #+#    #+#       #+#        #+#    #+# #+#            #+#     #+#    #+# #+#   #+#+# 
+        ###     ### ###    #### #########  ###    ###  ########  ########### #########        ##########  ########  ###        ###########  ########  ###    ####         
+""",
+"""
+ █████╗ ███╗   ██╗██████╗ ██████╗  ██████╗ ██╗██████╗     ███████╗███████╗██████╗ ██╗ ██████╗ ███╗   ██╗
+██╔══██╗████╗  ██║██╔══██╗██╔══██╗██╔═══██╗██║██╔══██╗    ██╔════╝██╔════╝██╔══██╗██║██╔═══██╗████╗  ██║
+███████║██╔██╗ ██║██║  ██║██████╔╝██║   ██║██║██║  ██║    █████╗  ███████╗██████╔╝██║██║   ██║██╔██╗ ██║
+██╔══██║██║╚██╗██║██║  ██║██╔══██╗██║   ██║██║██║  ██║    ██╔══╝  ╚════██║██╔═══╝ ██║██║   ██║██║╚██╗██║
+██║  ██║██║ ╚████║██████╔╝██║  ██║╚██████╔╝██║██████╔╝    ███████╗███████║██║     ██║╚██████╔╝██║ ╚████║
+╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝╚═════╝     ╚══════╝╚══════╝╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+                                                                                                        
+""",
+"""
+....###....##....##.########..########...#######..####.########.....########..######..########..####..#######..##....##
+...##.##...###...##.##.....##.##.....##.##.....##..##..##.....##....##.......##....##.##.....##..##..##.....##.###...##
+..##...##..####..##.##.....##.##.....##.##.....##..##..##.....##....##.......##.......##.....##..##..##.....##.####..##
+.##.....##.##.##.##.##.....##.########..##.....##..##..##.....##....######....######..########...##..##.....##.##.##.##
+.#########.##..####.##.....##.##...##...##.....##..##..##.....##....##.............##.##.........##..##.....##.##..####
+.##.....##.##...###.##.....##.##....##..##.....##..##..##.....##....##.......##....##.##.........##..##.....##.##...###
+.##.....##.##....##.########..##.....##..#######..####.########.....########..######..##........####..#######..##....##
+""",
+"""
+ $$$$$$\                  $$\                     $$\       $$\       $$$$$$$$\                     $$\                     
+$$  __$$\                 $$ |                    \__|      $$ |      $$  _____|                    \__|                    
+$$ /  $$ |$$$$$$$\   $$$$$$$ | $$$$$$\   $$$$$$\  $$\  $$$$$$$ |      $$ |       $$$$$$$\  $$$$$$\  $$\  $$$$$$\  $$$$$$$\  
+$$$$$$$$ |$$  __$$\ $$  __$$ |$$  __$$\ $$  __$$\ $$ |$$  __$$ |      $$$$$\    $$  _____|$$  __$$\ $$ |$$  __$$\ $$  __$$\ 
+$$  __$$ |$$ |  $$ |$$ /  $$ |$$ |  \__|$$ /  $$ |$$ |$$ /  $$ |      $$  __|   \$$$$$$\  $$ /  $$ |$$ |$$ /  $$ |$$ |  $$ |
+$$ |  $$ |$$ |  $$ |$$ |  $$ |$$ |      $$ |  $$ |$$ |$$ |  $$ |      $$ |       \____$$\ $$ |  $$ |$$ |$$ |  $$ |$$ |  $$ |
+$$ |  $$ |$$ |  $$ |\$$$$$$$ |$$ |      \$$$$$$  |$$ |\$$$$$$$ |      $$$$$$$$\ $$$$$$$  |$$$$$$$  |$$ |\$$$$$$  |$$ |  $$ |
+\__|  \__|\__|  \__| \_______|\__|       \______/ \__| \_______|      \________|\_______/ $$  ____/ \__| \______/ \__|  \__|
+                                                                                          $$ |                              
+                                                                                          $$ |                              
+                                                                                          \__|                              
+""",
+"""
+ ▄▄▄       ███▄    █ ▓█████▄  ██▀███   ▒█████   ██▓▓█████▄    ▓█████   ██████  ██▓███   ██▓ ▒█████   ███▄    █ 
+▒████▄     ██ ▀█   █ ▒██▀ ██▌▓██ ▒ ██▒▒██▒  ██▒▓██▒▒██▀ ██▌   ▓█   ▀ ▒██    ▒ ▓██░  ██▒▓██▒▒██▒  ██▒ ██ ▀█   █ 
+▒██  ▀█▄  ▓██  ▀█ ██▒░██   █▌▓██ ░▄█ ▒▒██░  ██▒▒██▒░██   █▌   ▒███   ░ ▓██▄   ▓██░ ██▓▒▒██▒▒██░  ██▒▓██  ▀█ ██▒
+░██▄▄▄▄██ ▓██▒  ▐▌██▒░▓█▄   ▌▒██▀▀█▄  ▒██   ██░░██░░▓█▄   ▌   ▒▓█  ▄   ▒   ██▒▒██▄█▓▒ ▒░██░▒██   ██░▓██▒  ▐▌██▒
+ ▓█   ▓██▒▒██░   ▓██░░▒████▓ ░██▓ ▒██▒░ ████▓▒░░██░░▒████▓    ░▒████▒▒██████▒▒▒██▒ ░  ░░██░░ ████▓▒░▒██░   ▓██░
+ ▒▒   ▓▒█░░ ▒░   ▒ ▒  ▒▒▓  ▒ ░ ▒▓ ░▒▓░░ ▒░▒░▒░ ░▓   ▒▒▓  ▒    ░░ ▒░ ░▒ ▒▓▒ ▒ ░▒▓▒░ ░  ░░▓  ░ ▒░▒░▒░ ░ ▒░   ▒ ▒ 
+  ▒   ▒▒ ░░ ░░   ░ ▒░ ░ ▒  ▒   ░▒ ░ ▒░  ░ ▒ ▒░  ▒ ░ ░ ▒  ▒     ░ ░  ░░ ░▒  ░ ░░▒ ░      ▒ ░  ░ ▒ ▒░ ░ ░░   ░ ▒░
+  ░   ▒      ░   ░ ░  ░ ░  ░   ░░   ░ ░ ░ ░ ▒   ▒ ░ ░ ░  ░       ░   ░  ░  ░  ░░        ▒ ░░ ░ ░ ▒     ░   ░ ░ 
+      ░  ░         ░    ░       ░         ░ ░   ░     ░          ░  ░      ░            ░      ░ ░           ░ 
+                      ░                             ░                                                          
+"""
+            # Add other ASCII backgrounds if needed
+        ]
+
         self.title("Android Espion")
         self.geometry("1920x1080")
 
         customtkinter.set_default_color_theme("dark-blue")
         self.configure(fg_color="black")
 
-        self.video_label = customtkinter.CTkLabel(self, text="")
-        self.video_label.place(x=0, y=0, relwidth=1, relheight=0.95)
+        # Adjust font size for better visibility
+        self.background_label = customtkinter.CTkLabel(self, text="", font=("Courier", 16), anchor="center")
+        self.background_label.place(relx=0.5, rely=0.2, anchor="center")  # Place at the top
+
+        self.set_random_background()
 
         self.main_frame = customtkinter.CTkFrame(self, fg_color="black")
-        self.main_frame.place(relx=0.5, rely=0.45, anchor="center")
+        self.main_frame.place(relx=0.5, rely=0.5, anchor="center")  # Center for main content
 
         self.status_bar = customtkinter.CTkFrame(self, height=30, fg_color="black")
         self.status_bar.place(relx=0, rely=0.95, relwidth=1, relheight=0.05)
@@ -59,9 +116,6 @@ class ConnectApp(customtkinter.CTk):
         )
         self.status_label.place(relx=0.5, rely=0.5, anchor="center")
 
-        self.video_path = "newVid.mp4"  # Replace with your video file path
-        self.play_video()
-
         self.disconnect_button = customtkinter.CTkButton(
             self,
             text="Disconnect",
@@ -72,37 +126,20 @@ class ConnectApp(customtkinter.CTk):
         )
         self.disconnect_button.place(relx=0.5, rely=0.9, anchor="center")
 
-        self.disconnect_button = customtkinter.CTkButton(
-            self,
-            text="Disconnect",
-            command=self.disconnect,
-            width=200,
-            fg_color="red",
-            hover_color="#8B0000",  # Dark red for hover
-            text_color="white",
-            text_color_disabled="gray"
-        )
-        self.disconnect_button.place(relx=0.5, rely=0.9, anchor="center")
         self.show_connect_page()
 
-    def play_video(self):
-        def video_loop():
-            cap = cv2.VideoCapture(self.video_path)
-            while True:
-                ret, frame = cap.read()
-                if not ret:
-                    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                    continue
-                frame = cv2.resize(frame, (1920, 1080))
-                cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                img = Image.fromarray(cv2image)
-                ctk_image = CTkImage(light_image=img, dark_image=img, size=(1920, 1080))
-                # self.video_label.configure(image=ctk_image) 
-                self.video_label.image = ctk_image
-
-        threading.Thread(target=video_loop, daemon=True).start()
-
-        threading.Thread(target=video_loop, daemon=True).start()
+    def set_random_background(self):
+        # Ensure that the choice is being made every time this method is called
+        background_text = random.choice(self.backgrounds)
+        self.background_label.configure(text=background_text)
+        
+        # Generate a random light color
+        r = random.randint(150, 255)
+        g = random.randint(150, 255)
+        b = random.randint(150, 255)
+        color = f"#{r:02x}{g:02x}{b:02x}"
+        
+        self.background_label.configure(text_color=color)
 
     def show_connect_page(self):
         for widget in self.main_frame.winfo_children():
