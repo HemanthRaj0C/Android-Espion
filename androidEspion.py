@@ -652,6 +652,7 @@ class ConnectApp(customtkinter.CTk):
 
         title_label = customtkinter.CTkLabel(audio_window, text="Listen Audio", 
                                             font=("Helvetica", 18, "bold"), text_color="#00FF00")
+        
         title_label.pack(pady=(20, 30))
 
         mode_var = customtkinter.StringVar(value="mic")
@@ -671,7 +672,9 @@ class ConnectApp(customtkinter.CTk):
             mode = mode_var.get()
             try:
                 result = subprocess.run(["adb", "shell", "getprop", "ro.build.version.release"], 
+                                        
                                         capture_output=True, text=True, check=True)
+
                 android_version = result.stdout.strip()
                 android_os = int(android_version.split(".")[0])
                 status_label.configure(text=f"Detected Android Version: {android_version}", text_color="#00FF00")
@@ -712,6 +715,7 @@ class ConnectApp(customtkinter.CTk):
             text_color="white",
             corner_radius=10
         )
+
         start_button.pack(pady=10)
 
         stop_button = customtkinter.CTkButton(
