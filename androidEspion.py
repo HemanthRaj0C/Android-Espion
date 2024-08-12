@@ -6,19 +6,6 @@ from tkinter import StringVar
 import os
 import random
 
-class GlowButton(customtkinter.CTkButton):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.configure(fg_color="#4682B4")  # Steel Blue
-            self.bind("<Enter>", self.on_enter)
-            self.bind("<Leave>", self.on_leave)
-
-        def on_enter(self, e):
-            self.configure(fg_color="#00BFFF")  # Deep Sky Blue (glowing effect)
-
-        def on_leave(self, e):
-            self.configure(fg_color="#4682B4")
-
 class ConnectApp(customtkinter.CTk):
     def __init__(self):
         super().__init__()
@@ -142,20 +129,26 @@ $$ |  $$ |$$ |  $$ |\$$$$$$$ |$$ |      \$$$$$$  |$$ |\$$$$$$$ |      $$$$$$$$\ 
         self.background_label.configure(text_color=color)
 
     def show_connect_page(self):
+        # Clear existing widgets
         for widget in self.main_frame.winfo_children():
             widget.destroy()
 
+        # Create a content frame with no padding and centered
         content_frame = customtkinter.CTkFrame(self.main_frame, fg_color="transparent", bg_color="transparent", corner_radius=15)
-        content_frame.pack(padx=20, pady=20)
+        content_frame.pack(expand=True, fill="both")
 
-        title_label = customtkinter.CTkLabel(content_frame, text="Connect to Device", font=("Helvetica", 24), bg_color="transparent",fg_color="transparent")
-        title_label.pack(pady=(0, 20))
+        # Center the title label in the content frame
+        title_label = customtkinter.CTkLabel(content_frame, text="Connect to Device", font=("Helvetica", 24), bg_color="transparent", fg_color="transparent")
+        title_label.pack(pady=(0, 50), anchor="center")
 
+        # Center the input entry in the content frame
         self.input_entry = customtkinter.CTkEntry(content_frame, placeholder_text="Enter IP", width=300, corner_radius=10)
-        self.input_entry.pack(pady=10)
+        self.input_entry.pack(pady=(0, 50), anchor="center")
 
+        # Bind Enter key to connect action
         self.input_entry.bind("<Return>", lambda event: self.on_connect())
 
+        # Center the connect button in the content frame
         self.connect_button = customtkinter.CTkButton(
             content_frame, 
             text="Connect", 
@@ -167,10 +160,11 @@ $$ |  $$ |$$ |  $$ |\$$$$$$$ |$$ |      \$$$$$$  |$$ |\$$$$$$$ |      $$$$$$$$\ 
             text_color_disabled="gray",
             corner_radius=10
         )
-        self.connect_button.pack(pady=10)
+        self.connect_button.pack(pady=(0, 10), anchor="center")
 
+        # Center the status label in the content frame
         self.status_label = customtkinter.CTkLabel(content_frame, text="")
-        self.status_label.pack(pady=10)
+        self.status_label.pack(pady=10, anchor="center")
 
     def on_connect(self):
 
@@ -210,18 +204,21 @@ $$ |  $$ |$$ |  $$ |\$$$$$$$ |$$ |      \$$$$$$  |$$ |\$$$$$$$ |      $$$$$$$$\ 
         title_label = customtkinter.CTkLabel(button_frame, text="Function Selection", font=("Helvetica", 24))
         title_label.grid(row=0, column=0, columnspan=4, pady=(0, 20))
 
-        functions = ["List of Connected Devices", "Taking screenshot", "Open App", "Uninstall App",
-                    "Screen Mirror", "Open Image in phone", "Select and pull File", "Listen Audio"]
+        functions = ["List of Connected Devices", "Taking Screenshot", "Open App", "Uninstall App",
+                    "Screen Mirror", "Push Image in Phone", "Select and Pull File", "Listen Audio"]
         
         for i, func_name in enumerate(functions):
-            button = GlowButton(
+            button = customtkinter.CTkButton(
                 button_frame, 
                 text=func_name, 
                 command=lambda x=i: self.custom_function(x+2),
                 width=200, 
                 height=50,
+                fg_color="#1E90FF",  # Dodger Blue
+                hover_color="#4169E1",  # Royal Blue
                 text_color="white",
-                text_color_disabled="gray"
+                text_color_disabled="gray",
+                corner_radius=10
             )
             button.grid(row=(i//4)+1, column=i%4, padx=10, pady=10)
 
