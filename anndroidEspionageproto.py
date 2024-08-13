@@ -47,6 +47,7 @@ def get_device_info():
     Encryption State : {encryption_state}\
     Build Date : {build_date}\
     SDK Version : {sdk_version}\
+    Wifi Interface : {wifi_interface}
 """
     )
 

@@ -51,18 +51,6 @@ $$ |  $$ |$$ |  $$ |\$$$$$$$ |$$ |      \$$$$$$  |$$ |\$$$$$$$ |      $$$$$$$$\ 
                                                                                           $$ |                              
                                                                                           \__|                              
 """,
-"""
- ▄▄▄       ███▄    █ ▓█████▄  ██▀███   ▒█████   ██▓▓█████▄    ▓█████   ██████  ██▓███   ██▓ ▒█████   ███▄    █ 
-▒████▄     ██ ▀█   █ ▒██▀ ██▌▓██ ▒ ██▒▒██▒  ██▒▓██▒▒██▀ ██▌   ▓█   ▀ ▒██    ▒ ▓██░  ██▒▓██▒▒██▒  ██▒ ██ ▀█   █ 
-▒██  ▀█▄  ▓██  ▀█ ██▒░██   █▌▓██ ░▄█ ▒▒██░  ██▒▒██▒░██   █▌   ▒███   ░ ▓██▄   ▓██░ ██▓▒▒██▒▒██░  ██▒▓██  ▀█ ██▒
-░██▄▄▄▄██ ▓██▒  ▐▌██▒░▓█▄   ▌▒██▀▀█▄  ▒██   ██░░██░░▓█▄   ▌   ▒▓█  ▄   ▒   ██▒▒██▄█▓▒ ▒░██░▒██   ██░▓██▒  ▐▌██▒
- ▓█   ▓██▒▒██░   ▓██░░▒████▓ ░██▓ ▒██▒░ ████▓▒░░██░░▒████▓    ░▒████▒▒██████▒▒▒██▒ ░  ░░██░░ ████▓▒░▒██░   ▓██░
- ▒▒   ▓▒█░░ ▒░   ▒ ▒  ▒▒▓  ▒ ░ ▒▓ ░▒▓░░ ▒░▒░▒░ ░▓   ▒▒▓  ▒    ░░ ▒░ ░▒ ▒▓▒ ▒ ░▒▓▒░ ░  ░░▓  ░ ▒░▒░▒░ ░ ▒░   ▒ ▒ 
-  ▒   ▒▒ ░░ ░░   ░ ▒░ ░ ▒  ▒   ░▒ ░ ▒░  ░ ▒ ▒░  ▒ ░ ░ ▒  ▒     ░ ░  ░░ ░▒  ░ ░░▒ ░      ▒ ░  ░ ▒ ▒░ ░ ░░   ░ ▒░
-  ░   ▒      ░   ░ ░  ░ ░  ░   ░░   ░ ░ ░ ░ ▒   ▒ ░ ░ ░  ░       ░   ░  ░  ░  ░░        ▒ ░░ ░ ░ ▒     ░   ░ ░ 
-      ░  ░         ░    ░       ░         ░ ░   ░     ░          ░  ░      ░            ░      ░ ░           ░ 
-                      ░                             ░                                                          
-"""
             # Add other ASCII backgrounds if needed
         ]
 
@@ -204,8 +192,8 @@ $$ |  $$ |$$ |  $$ |\$$$$$$$ |$$ |      \$$$$$$  |$$ |\$$$$$$$ |      $$$$$$$$\ 
         title_label = customtkinter.CTkLabel(button_frame, text="Function Selection", font=("Helvetica", 24))
         title_label.grid(row=0, column=0, columnspan=4, pady=(0, 20))
 
-        functions = ["List of Connected Devices", "Taking Screenshot", "Open App", "Uninstall App",
-                    "Screen Mirror", "Push Image in Phone", "Select and Pull File", "Listen Audio"]
+        functions = ["List of Connected Devices","Device information", "Taking Screenshot", "Open App", "Uninstall App",
+                    "Screen Mirror", "Push Image in Phone", "Select and Pull File", "Listen Audio","Open link"]
         
         for i, func_name in enumerate(functions):
             button = customtkinter.CTkButton(
@@ -220,7 +208,12 @@ $$ |  $$ |$$ |  $$ |\$$$$$$$ |$$ |      \$$$$$$  |$$ |\$$$$$$$ |      $$$$$$$$\ 
                 text_color_disabled="gray",
                 corner_radius=10
             )
-            button.grid(row=(i//4)+1, column=i%4, padx=10, pady=10)
+            if(i==8):
+                button.grid(row=(i//4+1),column=1,padx=10,pady=10)
+            elif i==9:
+                button.grid(row=(i//4+1),column=2,padx=10,pady=10)
+            else:
+                button.grid(row=(i//4)+1, column=i%4, padx=10, pady=10)
 
         back_button = customtkinter.CTkButton(
             button_frame, 
@@ -232,7 +225,7 @@ $$ |  $$ |$$ |  $$ |\$$$$$$$ |$$ |      \$$$$$$  |$$ |\$$$$$$$ |      $$$$$$$$\ 
             text_color="white",
             text_color_disabled="gray"
         )
-        back_button.grid(row=3, column=1, columnspan=2, pady=(20, 0))
+        back_button.grid(row=4, column=1, columnspan=2, pady=(20, 0))
 
         self.update()
 
@@ -240,19 +233,23 @@ $$ |  $$ |$$ |  $$ |\$$$$$$$ |$$ |      \$$$$$$  |$$ |\$$$$$$$ |      $$$$$$$$\ 
         if function_number == 2:
             self.list_devices()
         elif function_number == 3:
-            self.screenShot()
+            self.device_info()
         elif function_number == 4:
-            self.open_app()
+            self.screenShot()
         elif function_number == 5:
-            self.uninstall_app()
+            self.open_app()
         elif function_number == 6:
-            self.screen_copy()
+            self.uninstall_app()
         elif function_number == 7:
-            self.open_image_on_phone()
+            self.screen_copy()
         elif function_number == 8:
-            self.pull_file()
+            self.open_image_on_phone()
         elif function_number == 9:
+            self.pull_file()
+        elif function_number == 10:
             self.listen_audio()
+        elif function_number == 11:
+            self.open_link()
         else:
             print(f"Function {function_number} called")
 
@@ -764,6 +761,112 @@ $$ |  $$ |$$ |  $$ |\$$$$$$$ |$$ |      \$$$$$$  |$$ |\$$$$$$$ |      $$$$$$$$\ 
             stop_audio_stream()
 
         audio_window.protocol("WM_DELETE_WINDOW", on_close) 
+    
+    def device_info(self):
+        info_window = customtkinter.CTkToplevel(self)
+        info_window.title("Device Information")
+        info_window.geometry("500x600")
+        info_window.minsize(500, 600)
+        info_window.grab_set()
+        info_window.focus_set()
+
+        title_label = customtkinter.CTkLabel(info_window, text="Device Information", 
+                                            font=("Helvetica", 18, "bold"), text_color="#00FF00")
+        title_label.pack(pady=(20, 30))
+
+        info_frame = customtkinter.CTkFrame(info_window)
+        info_frame.pack(padx=20, pady=20, fill="both", expand=True)
+
+        def get_prop(prop):
+            result = subprocess.run(["adb", "shell", "getprop", prop], capture_output=True, text=True)
+            return result.stdout.strip()
+
+        info_data = [
+            ("Model", "ro.product.model"),
+            ("Manufacturer", "ro.product.manufacturer"),
+            ("Chipset", "ro.product.board"),
+            ("Android Version", "ro.build.version.release"),
+            ("Security Patch", "ro.build.version.security_patch"),
+            ("Device", "ro.product.vendor.device"),
+            ("SIM", "gsm.sim.operator.alpha"),
+            ("Encryption State", "ro.crypto.state"),
+            ("Build Date", "ro.build.date"),
+            ("SDK Version", "ro.build.version.sdk"),
+        ]
+
+        for i, (label, prop) in enumerate(info_data):
+            label_widget = customtkinter.CTkLabel(info_frame, text=f"{label}:", anchor="w")
+            label_widget.grid(row=i, column=0, sticky="w", padx=10, pady=5)
+            
+            value_widget = customtkinter.CTkLabel(info_frame, text=get_prop(prop), anchor="w")
+            value_widget.grid(row=i, column=1, sticky="w", padx=10, pady=5)
+
+        def refresh_info():
+            for i, (_, prop) in enumerate(info_data):
+                info_frame.grid_slaves(row=i, column=1)[0].configure(text=get_prop(prop))
+
+        refresh_button = customtkinter.CTkButton(
+            info_window,
+            text="Refresh",
+            command=refresh_info,
+            fg_color="#1E90FF",
+            hover_color="#4169E1",
+            text_color="white",
+            corner_radius=10
+        )
+        refresh_button.pack(pady=20)
+
+        info_window.update_idletasks()
+        info_window.geometry(f"{info_window.winfo_width()}x{info_window.winfo_height()}")
+
+    def open_link(self):
+        link_window = customtkinter.CTkToplevel(self)
+        link_window.title("Open Link on Device")
+        link_window.geometry("400x250")
+        link_window.grab_set()
+        link_window.focus_set()
+
+        title_label = customtkinter.CTkLabel(link_window, text="Open Link on Device", 
+                                            font=("Helvetica", 18, "bold"), text_color="#00FF00")
+        title_label.pack(pady=(20, 30))
+
+        url_entry = customtkinter.CTkEntry(link_window, width=300, placeholder_text="Enter URL (e.g., https://github.com)")
+        url_entry.pack(pady=10)
+
+        status_label = customtkinter.CTkLabel(link_window, text="", text_color="#FF0000")
+        status_label.pack(pady=10)
+
+        def open_url():
+            url = url_entry.get().strip()
+            if not url:
+                status_label.configure(text="Error: URL cannot be empty", text_color="#FF0000")
+                return
+            
+            try:
+                result = subprocess.run([
+                    "adb", "shell", "am", "start", 
+                    "-a", "android.intent.action.VIEW", 
+                    "-d", url
+                ], capture_output=True, text=True, check=True)
+                
+                status_label.configure(text=f"Opened '{url}' on device", text_color="#00FF00")
+                link_window.after(2000, link_window.destroy)  # Close window after 2 seconds
+            except subprocess.CalledProcessError as e:
+                status_label.configure(text=f"Error: {e.stderr.strip()}", text_color="#FF0000")
+
+        open_button = customtkinter.CTkButton(
+            link_window,
+            text="Open Link",
+            command=open_url,
+            fg_color="#1E90FF",
+            hover_color="#4169E1",
+            text_color="white",
+            corner_radius=10
+        )
+        open_button.pack(pady=20)
+
+        # Bind Enter key to open_url function
+        url_entry.bind("<Return>", lambda event: open_url())
 
 
 if __name__ == "__main__":
