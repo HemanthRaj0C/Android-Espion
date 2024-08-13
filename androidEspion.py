@@ -1,4 +1,5 @@
 import customtkinter
+from PIL import Image,ImageTk
 from tkinter import filedialog,ttk
 import threading
 import subprocess
@@ -33,7 +34,28 @@ $$ |  $$ |$$ |  $$ |\$$$$$$$ |$$ |      \$$$$$$  |$$ |\$$$$$$$ |      $$$$$$$$\ 
                                                                                           $$ |                              
                                                                                           $$ |                              
                                                                                           \__|                              
+""",
 """
+                     _           _     _   ______           _             
+     /\             | |         (_)   | | |  ____|         (_)            
+    /  \   _ __   __| |_ __ ___  _  __| | | |__   ___ _ __  _  ___  _ __  
+   / /\ \ | '_ \ / _` | '__/ _ \| |/ _` | |  __| / __| '_ \| |/ _ \| '_ \ 
+  / ____ \| | | | (_| | | | (_) | | (_| | | |____\__ \ |_) | | (_) | | | |
+ /_/    \_\_| |_|\__,_|_|  \___/|_|\__,_| |______|___/ .__/|_|\___/|_| |_|
+                                                     | |                  
+                                                     |_|                  
+""",
+"""
+  ____  ____   ___    ____   ___  ____  ___          ___  _____ ____ ____  ___   ____  
+ /    ||    \ |   \  |    \ /   \|    ||   \        /  _]/ ___/|    \    |/   \ |    \ 
+|  o  ||  _  ||    \ |  D  )     ||  | |    \      /  [_(   \_ |  o  )  ||     ||  _  |
+|     ||  |  ||  D  ||    /|  O  ||  | |  D  |    |    _]\__  ||   _/|  ||  O  ||  |  |
+|  _  ||  |  ||     ||    \|     ||  | |     |    |   [_ /  \ ||  |  |  ||     ||  |  |
+|  |  ||  |  ||     ||  .  \     ||  | |     |    |     |\    ||  |  |  ||     ||  |  |
+|__|__||__|__||_____||__|\_|\___/|____||_____|    |_____| \___||__| |____|\___/ |__|__|
+                                                                                       
+"""
+
             # Add other ASCII backgrounds if needed
         ]
 
@@ -84,6 +106,8 @@ $$ |  $$ |$$ |  $$ |\$$$$$$$ |$$ |      \$$$$$$  |$$ |\$$$$$$$ |      $$$$$$$$\ 
         )
         self.disconnect_button.place(relx=0.5, rely=0.9, anchor="center")
 
+        self.set_app_icon()
+
         self.show_connect_page()
 
     def set_random_background(self):
@@ -98,6 +122,14 @@ $$ |  $$ |$$ |  $$ |\$$$$$$$ |$$ |      \$$$$$$  |$$ |\$$$$$$$ |      $$$$$$$$\ 
         color = f"#{r:02x}{g:02x}{b:02x}"
         
         self.background_label.configure(text_color=color)
+    
+    def set_app_icon(self):
+        icon_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "favicon.ico")
+        if os.path.exists(icon_path):
+            self.iconbitmap(icon_path)
+            print("Icon set successfully")
+        else:
+            print("Icon file not found.")
 
     def show_connect_page(self):
         # Clear existing widgets
